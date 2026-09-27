@@ -1,22 +1,26 @@
-const express = require("express");
+const http = require("http");
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.send("RYANCLOUD API v2.9 ONLINE");
+const server = http.createServer((req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  if (req.url === "/api/status") {
+    res.end(JSON.stringify({
+      online: true,
+      name: "RYANCLOUD API",
+      version: "2.9",
+      status: "online",
+      server: "RYANCLOUD-01"
+    }));
+    return;
+  }
+
+  res.setHeader("Content-Type", "text/plain");
+  res.end("RYANCLOUD API v2.9 ONLINE");
 });
 
-app.get("/api/status", (req, res) => {
-  res.json({
-    online: true,
-    name: "RYANCLOUD API",
-    version: "2.9",
-    status: "online",
-    server: "RYANCLOUD-01"
-  });
-});
-
-app.listen(PORT, () => {
-  console.log(`RYANCLOUD API running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log("RYANCLOUD API ONLINE");
 });
