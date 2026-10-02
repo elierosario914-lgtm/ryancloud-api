@@ -17,12 +17,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Página principal
 app.get("/", (req, res) => {
   res.send("RYANCLOUD API v2.9 ONLINE");
 });
 
-// Estado del backend
 app.get("/api/status", (req, res) => {
   res.json({
     online: true,
@@ -33,10 +31,8 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// Sesiones guardadas temporalmente en memoria
 const sessions = new Map();
 
-// Crear sesión
 app.post("/api/session/create", (req, res) => {
   const { game, user, region } = req.body;
 
@@ -71,7 +67,6 @@ app.post("/api/session/create", (req, res) => {
   });
 });
 
-// Consultar sesión
 app.get("/api/session/status", (req, res) => {
   const id = req.query.id;
 
@@ -88,7 +83,6 @@ app.get("/api/session/status", (req, res) => {
   });
 });
 
-// Finalizar sesión
 app.post("/api/session/end", (req, res) => {
   const { id } = req.body;
 
