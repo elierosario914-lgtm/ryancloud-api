@@ -1,26 +1,117 @@
-const http = require("http");
+const express = require("express");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer((req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*");
+app.use(express.json());
 
-  if (req.url === "/api/status") {
-    res.end(JSON.stringify({
-      online: true,
-      name: "RYANCLOUD API",
-      version: "2.9",
-      status: "online",
-      server: "RYANCLOUD-01"
-    }));
-    return;
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
   }
 
-  res.setHeader("Content-Type", "text/plain");
-  res.end("RYANCLOUD API v2.9 ONLINE");
+  next();
 });
 
-server.listen(PORT, () => {
-  console.log("RYANCLOUD API ONLINE");
+// Página principal
+app.get("/", (req, res) => {
+  res.send("RYANCLOUD API v2.9 ONLINE");
+});
+
+// Estado del backend
+app.get("/api/status", (req, res) => {
+  res.json({
+    online: true,
+    name: "RYANCLOUD API",
+    version: "2.9",
+    status: "online",
+    server: "RYANCLOUD-01"
+  });
+});
+
+// Sesiones guardadas temporalmente en memoria
+const sessions = new Map();
+
+// Crear sesión
+app.post("/api/session/create", (req, res) => {
+  const { game, user, region } = req.body;
+
+  if (!game) {
+    return res.status(400).json({
+      success: false,
+      error: "Falta el juego"
+    });
+  }
+
+  const id =
+    "ELIE-" +
+    Date.now().toString(36) +
+    "-" +
+    Math.random().toString(36).slice(2, 7);
+
+  const session = {
+    id,
+    game,
+    user: user || "RYAN",
+    region: region || "America",
+    server: "RYANCLOUD-01",
+    status: "preparing",
+    createdAt: new Date().toISOString()
+  };
+
+  sessions.set(id, session);
+
+  res.json({
+    success: true,
+    session
+  });
+});
+
+// Consultar sesión
+app.get("/api/session/status", (req, res) => {
+  const id = req.query.id;
+
+  if (!id || !sessions.has(id)) {
+    return res.status(404).json({
+      success: false,
+      error: "Sesión no encontrada"
+    });
+  }
+
+  res.json({
+    success: true,
+    session: sessions.get(id)
+  });
+});
+
+// Finalizar sesión
+app.post("/api/session/end", (req, res) => {
+  const { id } = req.body;
+
+  if (!id || !sessions.has(id)) {
+    return res.status(404).json({
+      success: false,
+      error: "Sesión no encontrada"
+    });
+  }
+
+  const session = sessions.get(id);
+
+  session.status = "finished";
+  session.finishedAt = new Date().toISOString();
+
+  sessions.set(id, session);
+
+  res.json({
+    success: true,
+    session
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`RYANCLOUD API ONLINE - PORT ${PORT}`);
 });
